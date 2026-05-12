@@ -6,6 +6,10 @@
 
 > 浮光掠影，流光欺梦。一款轻量、安全、好看的 PHP 图床系统，无需数据库，开箱即用。
 
+<p align="center">
+  <img src="https://s41.ax1x.com/2026/05/12/peOjBZj.png" alt="预览截图" width="800">
+</p>
+
 ---
 
 ## ✨ 特性
