@@ -39,7 +39,7 @@
 
 1. **克隆项目**
 ```bash
-git clone https://github.com/yourname/liuqi-image-host.git
+git clone https://github.com/lqay-cn/liuqi-image-host.git
 cd liuqi-image-host
 ```
 2. **克隆项目**
