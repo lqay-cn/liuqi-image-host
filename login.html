@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>流欺图床 · 登录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a2a 0%, #1a1a3a 100%);
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 漂浮粒子动画 */
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255,200,230,0.6), transparent);
+            border-radius: 50%;
+            animation: floatUp 8s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.6; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 48px;
+            border: 1px solid rgba(255,255,240,0.3);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.2);
+            width: 100%;
+            max-width: 450px;
+            padding: 2.5rem 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 2.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFB7D0, #B8A9FF, #7FDBFF);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .sub {
+            text-align: center;
+            color: rgba(255,245,250,0.8);
+            font-size: 0.85rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .input-group label {
+            display: block;
+            color: rgba(255,220,240,0.8);
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            margin-left: 12px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 20px;
+            background: rgba(255,255,245,0.15);
+            border: 1px solid rgba(255,255,210,0.3);
+            border-radius: 60px;
+            font-size: 1rem;
+            color: white;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        input:focus {
+            border-color: #ff9ec0;
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 0 12px rgba(255,120,160,0.4);
+        }
+
+        input::placeholder {
+            color: rgba(255,250,230,0.5);
+        }
+
+        /* 验证码区域 - 完全响应式 */
+        .captcha-wrapper {
+            background: rgba(20, 15, 40, 0.5);
+            border-radius: 60px;
+            padding: 6px 6px 6px 20px;
+            border: 1px solid rgba(255,200,220,0.3);
+            transition: 0.2s;
+        }
+        
+        .captcha-wrapper:focus-within {
+            border-color: #ff9ec0;
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 12px rgba(255,120,160,0.3);
+        }
+        
+        .captcha-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: nowrap;
+        }
+        
+        .captcha-input-area {
+            flex: 2;
+            min-width: 0;
+        }
+        
+        .captcha-input-area input {
+            padding: 12px 0;
+            background: transparent;
+            border: none;
+            font-size: 1rem;
+            letter-spacing: 2px;
+        }
+        
+        .captcha-input-area input:focus {
+            box-shadow: none;
+        }
+        
+        .captcha-image-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .captcha-img {
+            width: 120px;
+            height: 42px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 1px solid rgba(255,200,220,0.5);
+            background: rgba(30,20,50,0.8);
+            object-fit: cover;
+        }
+        
+        .captcha-refresh {
+            background: rgba(255,245,240,0.15);
+            border: 1px solid rgba(255,230,200,0.4);
+            border-radius: 40px;
+            padding: 8px 12px;
+            color: #ffd0e8;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .captcha-refresh:hover {
+            background: rgba(255,200,220,0.3);
+            transform: scale(0.98);
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 60px;
+            background: linear-gradient(120deg, #ff9eb5, #b77cff);
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #1e1a2f;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin-top: 20px;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            background: linear-gradient(120deg, #ff889f, #a86aff);
+        }
+
+        .error-msg {
+            color: #ffb8c5;
+            background: rgba(180,30,60,0.4);
+            border-radius: 40px;
+            padding: 12px;
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .hint-text {
+            font-size: 0.7rem;
+            color: rgba(255,220,240,0.5);
+            margin-top: 8px;
+            margin-left: 12px;
+        }
+
+        /* 平板适配 */
+        @media (max-width: 480px) {
+            .glass-card { 
+                padding: 1.5rem; 
+                margin: 12px; 
+            }
+            h2 { 
+                font-size: 1.8rem; 
+            }
+            .captcha-wrapper {
+                padding: 8px;
+            }
+            .captcha-content {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .captcha-input-area input {
+                text-align: center;
+                font-size: 1.1rem;
+                padding: 8px 0;
+            }
+            .captcha-image-area {
+                justify-content: center;
+            }
+            .captcha-img {
+                width: 140px;
+                height: 45px;
+            }
+            .captcha-refresh {
+                padding: 8px 16px;
+            }
+        }
+        
+        /* 超小屏幕 */
+        @media (max-width: 360px) {
+            .captcha-image-area {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .captcha-img {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="particles"></div>
+<div class="glass-card">
+    <h2>🎭 流欺图床</h2>
+    <div class="sub">流光幻彩 · 欺若云霓</div>
+    
+    <form id="loginForm">
+        <div class="input-group">
+            <label>👤 用户名</label>
+            <input type="text" id="username" placeholder="请输入用户名" required autocomplete="off">
+        </div>
+        
+        <div class="input-group">
+            <label>🔒 密码</label>
+            <input type="password" id="password" placeholder="请输入密码" required>
+        </div>
+        
+        <div class="input-group">
+            <label>📷 验证码</label>
+            <div class="captcha-wrapper">
+                <div class="captcha-content">
+                    <div class="captcha-input-area">
+                        <input type="text" id="captcha" placeholder="输入验证码" required autocomplete="off" maxlength="4" style="font-size: 1rem;">
+                    </div>
+                    <div class="captcha-image-area">
+                        <img id="captchaImg" class="captcha-img" src="captcha.php" alt="验证码" title="点击刷新">
+                        <button type="button" id="refreshCaptcha" class="captcha-refresh">🔄 刷新</button>
+                    </div>
+                </div>
+            </div>
+            <div class="hint-text">💡 点击图片或刷新按钮可更换验证码</div>
+        </div>
+        
+        <button type="submit">✦ 踏入幻境 ✦</button>
+        <div id="msg" class="error-msg" style="display: none;"></div>
+    </form>
+</div>
+
+<script>
+    // 产生漂浮粒子
+    for(let i=0; i<60; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.width = p.style.height = Math.random() * 10 + 3 + 'px';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDuration = Math.random() * 12 + 4 + 's';
+        p.style.animationDelay = Math.random() * 8 + 's';
+        p.style.opacity = Math.random() * 0.5 + 0.2;
+        document.getElementById('particles').appendChild(p);
+    }
+
+    // 刷新验证码
+    function refreshCaptcha() {
+        const captchaImg = document.getElementById('captchaImg');
+        captchaImg.src = 'captcha.php?t=' + Date.now() + '&r=' + Math.random();
+    }
+    
+    document.getElementById('captchaImg').addEventListener('click', refreshCaptcha);
+    document.getElementById('refreshCaptcha').addEventListener('click', refreshCaptcha);
+
+    const form = document.getElementById('loginForm');
+    const captchaInput = document.getElementById('captcha');
+    
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const captcha = captchaInput.value.trim();
+        
+        if (!username) {
+            showMsg('请输入用户名');
+            return;
+        }
+        if (!password) {
+            showMsg('请输入密码');
+            return;
+        }
+        if (!captcha) {
+            showMsg('请输入验证码');
+            return;
+        }
+        
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = '⏳ 验证中...';
+        submitBtn.disabled = true;
+        
+        try {
+            const res = await fetch('upload.php?action=login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username, password, captcha})
+            });
+            const result = await res.json();
+            
+            if (result.success) {
+                window.location.href = 'index.html';
+            } else {
+                showMsg(result.message || '登录失败');
+                refreshCaptcha();
+                captchaInput.value = '';
+                captchaInput.focus();
+            }
+        } catch (err) {
+            showMsg('网络错误，请重试');
+        } finally {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
+    };
+    
+    function showMsg(msg) {
+        const msgDiv = document.getElementById('msg');
+        msgDiv.textContent = msg;
+        msgDiv.style.display = 'block';
+        setTimeout(() => {
+            msgDiv.style.display = 'none';
+        }, 3000);
+    }
+    
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('focus', () => {
+            document.getElementById('msg').style.display = 'none';
+        });
+    });
+</script>
+</body>
+</html>
