@@ -1,5 +1,5 @@
 <?php
-// admin.php - 管理员面板（支持修改密码）
+// admin.php - 管理员面板（支持 WebDAV + 批量删除 + 直链复制）
 require 'config.php';
 checkAdmin();
 
@@ -43,7 +43,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $remainingImages = [];
             foreach ($images as $img) {
                 if ($img['uploader'] === $delUser) {
-                    @unlink(UPLOAD_DIR . $img['filename']);
+                    if (isset($img['storage']) && $img['storage'] === 'webdav') {
+                        webdav_delete(WEBDAV_IMG_DIR . '/' . $img['filename']);
+                    } else {
+                        @unlink(UPLOAD_DIR . $img['filename']);
+                    }
                 } else {
                     $remainingImages[] = $img;
                 }
@@ -77,9 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             file_put_contents(DATA_DIR . 'users.json', json_encode($users, JSON_PRETTY_PRINT));
             logAction('change_password', "修改了自己的密码");
             $success = "密码修改成功，请使用新密码重新登录";
-            // 可选：强制重新登录
-            // session_destroy();
-            // header('Location: login.html');
         }
     }
     
@@ -104,15 +105,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $users = json_decode(file_get_contents(DATA_DIR . 'users.json'), true);
         }
     }
+    
+    // 5. 批量删除图片
+    if ($_POST['action'] === 'batch_delete' && isset($_POST['delete_ids'])) {
+        $deleteIds = $_POST['delete_ids'];
+        if (is_array($deleteIds) && !empty($deleteIds)) {
+            $images = getAllImages();
+            $remainingImages = [];
+            $deletedCount = 0;
+            
+            foreach ($images as $img) {
+                if (in_array($img['id'], $deleteIds)) {
+                    if (isset($img['storage']) && $img['storage'] === 'webdav') {
+                        webdav_delete(WEBDAV_IMG_DIR . '/' . $img['filename']);
+                    } else {
+                        @unlink(UPLOAD_DIR . $img['filename']);
+                    }
+                    $deletedCount++;
+                    logAction('batch_delete', "批量删除图片 {$img['filename']}");
+                } else {
+                    $remainingImages[] = $img;
+                }
+            }
+            saveImages($remainingImages);
+            $success = "✅ 成功删除 {$deletedCount} 张图片";
+            $allImages = $remainingImages;
+        } else {
+            $error = "请至少选择一张图片";
+        }
+    }
 }
 
-// 处理删除图片
+// 处理单个删除图片
 if (isset($_GET['del_id'])) {
     $delId = sanitize($_GET['del_id']);
     $images = getAllImages();
     foreach ($images as $k => $img) {
         if ($img['id'] === $delId) {
-            @unlink(UPLOAD_DIR . $img['filename']);
+            if (isset($img['storage']) && $img['storage'] === 'webdav') {
+                webdav_delete(WEBDAV_IMG_DIR . '/' . $img['filename']);
+            } else {
+                @unlink(UPLOAD_DIR . $img['filename']);
+            }
             array_splice($images, $k, 1);
             saveImages($images);
             logAction('delete', "删除图片 {$img['filename']}");
@@ -121,13 +155,21 @@ if (isset($_GET['del_id'])) {
         }
     }
 }
+
+// 辅助函数：获取图片 URL
+function getAdminImageUrl($filename) {
+    if (USE_WEBDAV) {
+        return 'image_proxy.php?file=' . urlencode($filename);
+    }
+    return 'uploads/' . $filename;
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>流欺图床 · 管理之境</title>
     <style>
         * {
@@ -143,7 +185,6 @@ if (isset($_GET['del_id'])) {
             min-height: 100vh;
         }
 
-        /* 背景装饰 */
         body::before {
             content: '';
             position: fixed;
@@ -283,22 +324,39 @@ if (isset($_GET['del_id'])) {
             transform: scale(0.98);
         }
 
-        .btn-secondary {
-            background: rgba(100, 150, 255, 0.6);
+        .btn-warning {
+            background: linear-gradient(120deg, #ffaa66, #ff7744);
             border: none;
-            padding: 8px 16px;
+            padding: 8px 20px;
             border-radius: 40px;
             color: white;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            transition: 0.2s;
+            font-weight: bold;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 100, 50, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(100, 150, 255, 0.6);
+            border: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.85rem;
             transition: 0.2s;
         }
 
         .btn-secondary:hover {
             background: rgba(100, 150, 255, 0.9);
+            transform: translateY(-2px);
         }
 
-        /* 用户列表 */
         .user-list {
             list-style: none;
             max-height: 300px;
@@ -328,17 +386,45 @@ if (isset($_GET['del_id'])) {
             margin-top: 2rem;
         }
 
+        .image-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+            gap: 12px;
+        }
+
         .image-section h3 {
             color: #ffd0e8;
-            margin-bottom: 1rem;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
+        .batch-bar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 8px 20px;
+            border-radius: 60px;
+            backdrop-filter: blur(8px);
+        }
+
+        .batch-bar .select-all {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ffd0e8;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
         .image-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 1.2rem;
             max-height: 60vh;
             overflow-y: auto;
@@ -350,7 +436,8 @@ if (isset($_GET['del_id'])) {
             border-radius: 24px;
             overflow: hidden;
             transition: all 0.25s;
-            border: 1px solid rgba(255, 220, 240, 0.2);
+            border: 2px solid transparent;
+            position: relative;
         }
 
         .img-card:hover {
@@ -359,12 +446,66 @@ if (isset($_GET['del_id'])) {
             box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
         }
 
+        .img-card.selected {
+            border-color: #ff9eb5;
+            box-shadow: 0 0 0 2px #ff9eb5;
+        }
+
+        .checkbox-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .img-checkbox {
+            display: none;
+        }
+
+        .checkbox-label {
+            width: 26px;
+            height: 26px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(255, 200, 220, 0.9);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-block;
+            position: relative;
+            backdrop-filter: blur(4px);
+        }
+
+        .img-checkbox:checked + .checkbox-label {
+            background: #ff9eb5;
+            border-color: #ff9eb5;
+        }
+
+        .img-checkbox:checked + .checkbox-label::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #1e1a2f;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .checkbox-label:hover {
+            transform: scale(1.1);
+            border-color: #ffd0e8;
+        }
+
         .img-card img {
             width: 100%;
             aspect-ratio: 1;
             object-fit: cover;
             display: block;
             cursor: pointer;
+            background: #1a1535;
         }
 
         .img-info {
@@ -390,6 +531,29 @@ if (isset($_GET['del_id'])) {
             color: #a890c0;
         }
 
+        .img-storage {
+            font-size: 0.6rem;
+            color: #90c0a8;
+            margin-top: 4px;
+        }
+
+        .link-btn {
+            background: rgba(100, 150, 255, 0.5);
+            border: none;
+            border-radius: 30px;
+            padding: 5px 10px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.65rem;
+            transition: 0.2s;
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        .link-btn:hover {
+            background: rgba(100, 150, 255, 0.9);
+        }
+
         .del-img-btn {
             background: rgba(200, 50, 70, 0.8);
             border: none;
@@ -399,7 +563,7 @@ if (isset($_GET['del_id'])) {
             cursor: pointer;
             font-size: 0.7rem;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 8px;
             transition: 0.2s;
         }
 
@@ -456,6 +620,62 @@ if (isset($_GET['del_id'])) {
             border-color: rgba(255, 200, 230, 0.2);
         }
 
+        .storage-info {
+            font-size: 0.7rem;
+            color: #b8a0d0;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            background: rgba(255, 245, 240, 0.15);
+            border: 1px solid rgba(255, 230, 200, 0.4);
+            border-radius: 60px;
+            padding: 6px 18px;
+            color: #fff0e5;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 200, 220, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            padding: 10px 20px;
+            border-radius: 40px;
+            color: #ccffdd;
+            font-size: 0.85rem;
+            z-index: 1001;
+            animation: fadeInUp 0.2s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 16px;
@@ -466,6 +686,14 @@ if (isset($_GET['del_id'])) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
             }
+            .image-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .batch-bar {
+                width: 100%;
+                justify-content: space-between;
+            }
         }
     </style>
 </head>
@@ -474,8 +702,20 @@ if (isset($_GET['del_id'])) {
     <h1>
         ⚙️ 管理之境
         <span class="stats-badge"><?= count($allImages) ?> 张图片 | <?= count($users) ?> 位用户</span>
+        <?php if (USE_WEBDAV): ?>
+        <span class="stats-badge" style="background: rgba(100,150,255,0.3);">☁️ WebDAV 模式</span>
+        <?php else: ?>
+        <span class="stats-badge" style="background: rgba(100,150,255,0.3);">💾 本地存储</span>
+        <?php endif; ?>
+        <span class="stats-badge" style="background: rgba(255,200,100,0.3);">👑 <?= htmlspecialchars($currentAdmin) ?></span>
     </h1>
-    <div class="subtitle">流欺图床 · 管理员 · <?= htmlspecialchars($currentAdmin) ?></div>
+    <div class="subtitle">
+        流欺图床 · 管理后台
+        <div class="nav-links" style="margin-top: 12px;">
+            <a href="index.html" class="nav-link">🏠 返回首页</a>
+            <a href="config_manager.php" class="nav-link">⚙️ 系统配置</a>
+        </div>
+    </div>
 
     <?php if (isset($success)): ?>
         <div class="alert-success">✨ <?= htmlspecialchars($success) ?></div>
@@ -484,7 +724,6 @@ if (isset($_GET['del_id'])) {
         <div class="alert-error">⚠️ <?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
-    <!-- 四宫格管理面板 -->
     <div class="dashboard-grid">
         
         <!-- 卡片1：修改自己的密码 -->
@@ -558,45 +797,92 @@ if (isset($_GET['del_id'])) {
                 <?php endforeach; ?>
             </ul>
             <hr>
-            <div style="font-size: 0.75rem; color: #a890c0; text-align: center;">
+            <div class="storage-info">
                 💡 提示：普通用户的密码可通过上方「重置用户密码」修改
             </div>
         </div>
     </div>
 
-    <!-- 图片管理区域 -->
+    <!-- 图片管理区域（带批量删除） -->
     <div class="image-section">
-        <h3>🖼️ 图片管理 · 点击图片可放大预览</h3>
-        <div class="image-grid">
-            <?php if (empty($allImages)): ?>
-                <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #c8b0e8;">
-                    📭 暂无图片，让用户们上传一些吧
-                </div>
-            <?php else: ?>
-                <?php foreach ($allImages as $img): ?>
-                    <div class="img-card">
-                        <img src="uploads/<?= urlencode($img['filename']) ?>" loading="lazy" 
-                             onclick="window.open('uploads/<?= urlencode($img['filename']) ?>', '_blank')" 
-                             style="cursor: pointer;">
-                        <div class="img-info">
-                            <div class="img-name">📷 <?= htmlspecialchars(mb_substr($img['name'], 0, 20)) ?></div>
-                            <div class="img-uploader">👤 <?= htmlspecialchars($img['uploader']) ?></div>
-                            <div class="img-time">📅 <?= $img['time'] ?></div>
-                            <button class="del-img-btn" onclick="deleteImage('<?= $img['id'] ?>')">🗑️ 删除</button>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
+        <div class="image-header">
+            <h3>🖼️ 图片管理 · 点击图片可放大预览</h3>
+            <div class="batch-bar" id="batchBar" style="display: none;">
+                <label class="select-all">
+                    <input type="checkbox" id="selectAllCheckbox"> 
+                    <span>全选</span>
+                </label>
+                <button class="btn-warning" id="batchDeleteBtn">
+                    🗑️ 批量删除 (<span id="selectedCount">0</span>)
+                </button>
+                <button class="btn-secondary" id="cancelSelectBtn">取消选择</button>
+            </div>
         </div>
-    </div>
-
-    <div style="text-align: center; margin-top: 2rem;">
-        <a href="index.html" class="back-link">← 返回图床主页</a>
+        
+        <form id="batchDeleteForm" method="POST">
+            <input type="hidden" name="action" value="batch_delete">
+            <div class="image-grid" id="imageGrid">
+                <?php if (empty($allImages)): ?>
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #c8b0e8;">
+                        📭 暂无图片，让用户们上传一些吧
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($allImages as $img): ?>
+                        <div class="img-card" data-id="<?= $img['id'] ?>">
+                            <div class="checkbox-overlay">
+                                <input type="checkbox" name="delete_ids[]" value="<?= $img['id'] ?>" class="img-checkbox" id="cb_<?= $img['id'] ?>">
+                                <label for="cb_<?= $img['id'] ?>" class="checkbox-label"></label>
+                            </div>
+                            <img src="<?= getAdminImageUrl($img['filename']) ?>" loading="lazy" 
+                                 onclick="window.open('<?= getAdminImageUrl($img['filename']) ?>', '_blank')" 
+                                 style="cursor: pointer;">
+                            <div class="img-info">
+                                <div class="img-name">📷 <?= htmlspecialchars(mb_substr($img['name'], 0, 20)) ?></div>
+                                <div class="img-uploader">👤 <?= htmlspecialchars($img['uploader']) ?></div>
+                                <div class="img-time">📅 <?= $img['time'] ?></div>
+                                <?php if (isset($img['storage'])): ?>
+                                    <div class="img-storage">📦 <?= $img['storage'] === 'webdav' ? 'WebDAV' : '本地' ?></div>
+                                <?php endif; ?>
+                                <button class="link-btn" onclick="copyLink('<?= getAdminImageUrl($img['filename']) ?>')">🔗 复制链接</button>
+                                <button type="button" class="del-img-btn" onclick="deleteSingleImage('<?= $img['id'] ?>')">🗑️ 删除</button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </form>
     </div>
 </div>
 
 <script>
-    async function deleteImage(id) {
+    // 复制链接函数
+    async function copyLink(url) {
+        try {
+            await navigator.clipboard.writeText(url);
+            showToast('✅ 链接已复制到剪贴板！');
+        } catch (err) {
+            const textarea = document.createElement('textarea');
+            textarea.value = url;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('✅ 链接已复制到剪贴板！');
+        }
+    }
+    
+    function showToast(msg) {
+        let toast = document.querySelector('.toast');
+        if (toast) toast.remove();
+        toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }
+    
+    // 单个删除
+    async function deleteSingleImage(id) {
         if (!confirm('确认删除这张图片？')) return;
         const res = await fetch(`admin.php?del_id=${encodeURIComponent(id)}`);
         if (res.ok) {
@@ -605,6 +891,76 @@ if (isset($_GET['del_id'])) {
             alert('删除失败');
         }
     }
+    
+    // 批量删除相关逻辑
+    const batchBar = document.getElementById('batchBar');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+    const cancelSelectBtn = document.getElementById('cancelSelectBtn');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    const batchDeleteForm = document.getElementById('batchDeleteForm');
+    
+    function updateBatchBar() {
+        const checkboxes = document.querySelectorAll('.img-checkbox');
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        
+        if (checkedCount > 0) {
+            batchBar.style.display = 'flex';
+            selectedCountSpan.textContent = checkedCount;
+        } else {
+            batchBar.style.display = 'none';
+        }
+        
+        const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+        if (selectAllCheckbox) selectAllCheckbox.checked = allChecked;
+        
+        document.querySelectorAll('.img-card').forEach(card => {
+            const checkbox = card.querySelector('.img-checkbox');
+            if (checkbox && checkbox.checked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        });
+    }
+    
+    document.querySelectorAll('.img-checkbox').forEach(cb => {
+        cb.addEventListener('change', updateBatchBar);
+    });
+    
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            document.querySelectorAll('.img-checkbox').forEach(cb => {
+                cb.checked = isChecked;
+            });
+            updateBatchBar();
+        });
+    }
+    
+    if (cancelSelectBtn) {
+        cancelSelectBtn.addEventListener('click', () => {
+            document.querySelectorAll('.img-checkbox').forEach(cb => {
+                cb.checked = false;
+            });
+            updateBatchBar();
+        });
+    }
+    
+    if (batchDeleteBtn) {
+        batchDeleteBtn.addEventListener('click', () => {
+            const checkedCount = document.querySelectorAll('.img-checkbox:checked').length;
+            if (checkedCount === 0) {
+                alert('请至少选择一张图片');
+                return;
+            }
+            if (confirm(`确定要删除选中的 ${checkedCount} 张图片吗？\n此操作不可恢复！`)) {
+                batchDeleteForm.submit();
+            }
+        });
+    }
+    
+    updateBatchBar();
 </script>
 </body>
 </html>

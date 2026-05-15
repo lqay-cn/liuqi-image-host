@@ -18,7 +18,7 @@
             position: relative;
         }
 
-        /* 背景容器 - 双层实现联动平移动画 */
+        /* 背景容器 */
         .bg-container {
             position: fixed;
             top: 0;
@@ -39,7 +39,6 @@
             background-position: center;
             background-repeat: no-repeat;
             transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-            filter: brightness(0.45) saturate(1.15);
         }
 
         .bg-layer.active {
@@ -58,7 +57,6 @@
             margin: 0 auto;
             padding: 20px 24px 60px;
             position: relative;
-            backdrop-filter: blur(3px);
         }
 
         /* 玻璃导航栏 */
@@ -74,7 +72,6 @@
             margin-bottom: 30px;
             border: 1px solid rgba(255, 215, 245, 0.5);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-            animation: fadeInDown 0.6s ease;
         }
 
         .logo {
@@ -85,7 +82,6 @@
             background-clip: text;
             color: transparent;
             letter-spacing: -0.5px;
-            text-shadow: 0 0 20px rgba(255, 200, 230, 0.3);
         }
 
         .user-area {
@@ -116,7 +112,6 @@
         /* 上传区域 */
         .upload-section {
             margin-bottom: 50px;
-            animation: fadeInUp 0.6s ease;
         }
 
         .drop-zone {
@@ -173,7 +168,6 @@
             border: 2px solid rgba(255, 235, 200, 0.8);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             transition: transform 0.2s;
-            animation: scaleIn 0.2s ease;
         }
 
         .preview-item:hover {
@@ -201,7 +195,6 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
-            transition: 0.2s;
             z-index: 10;
         }
 
@@ -210,7 +203,6 @@
             color: white;
         }
 
-        /* 进度条样式 */
         .progress-wrapper {
             max-width: 400px;
             margin: 20px auto 0;
@@ -222,7 +214,6 @@
             border-radius: 60px;
             height: 10px;
             overflow: hidden;
-            backdrop-filter: blur(4px);
         }
 
         .progress-bar {
@@ -231,27 +222,6 @@
             background: linear-gradient(90deg, #ff9eb5, #b77cff);
             border-radius: 60px;
             transition: width 0.25s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, 
-                transparent, 
-                rgba(255, 255, 255, 0.3), 
-                transparent);
-            animation: shimmer 1.5s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
         }
 
         .progress-text {
@@ -283,7 +253,6 @@
         .upload-action-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
 
         .btn-wrapper {
@@ -294,7 +263,7 @@
         /* 图片网格 */
         .image-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 28px;
             margin-top: 30px;
         }
@@ -306,7 +275,6 @@
             overflow: hidden;
             border: 1px solid rgba(255, 235, 205, 0.5);
             transition: all 0.3s;
-            animation: fadeInUp 0.4s ease;
         }
 
         .img-card:hover {
@@ -342,21 +310,142 @@
             margin-top: 6px;
         }
 
+        .link-buttons {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .link-btn {
+            background: rgba(100, 150, 255, 0.5);
+            border: none;
+            border-radius: 30px;
+            padding: 5px 10px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.65rem;
+            transition: 0.2s;
+            flex: 1;
+        }
+
+        .link-btn:hover {
+            background: rgba(100, 150, 255, 0.9);
+        }
+
         .del-btn {
             background: rgba(220, 70, 90, 0.8);
             border: none;
             border-radius: 50px;
-            padding: 5px 14px;
+            padding: 6px 12px;
             color: white;
             cursor: pointer;
             font-size: 0.7rem;
             width: 100%;
             margin-top: 10px;
-            transition: 0.2s;
         }
 
         .del-btn:hover {
             background: #ff4455;
+        }
+
+        /* 弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: rgba(20, 15, 45, 0.95);
+            backdrop-filter: blur(16px);
+            border-radius: 32px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid rgba(255, 200, 230, 0.3);
+        }
+
+        .modal-content h3 {
+            color: #ffd0e8;
+            margin-bottom: 16px;
+        }
+
+        .link-type-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .link-tab {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 40px;
+            padding: 8px 16px;
+            color: #ffd0e8;
+            cursor: pointer;
+        }
+
+        .link-tab.active {
+            background: linear-gradient(120deg, #ff9eb5, #b77cff);
+            color: #1e1a2f;
+        }
+
+        .link-display {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 16px;
+            word-break: break-all;
+            font-size: 0.85rem;
+            color: #c8b0e8;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .copy-btn {
+            background: linear-gradient(120deg, #ff9eb5, #b77cff);
+            border: none;
+            border-radius: 40px;
+            padding: 10px 20px;
+            color: #1e1a2f;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .close-modal {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 40px;
+            padding: 8px 16px;
+            color: #ffd0e8;
+            cursor: pointer;
+            margin-top: 12px;
+            width: 100%;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            padding: 8px 20px;
+            border-radius: 40px;
+            color: #ccffdd;
+            font-size: 0.85rem;
+            z-index: 1001;
         }
 
         .msg-toast {
@@ -371,41 +460,16 @@
             color: #ffd0e8;
             z-index: 100;
             font-size: 0.9rem;
-            animation: fadeInUp 0.3s ease;
         }
 
-        /* 动画 */
         @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes scaleIn {
-            from {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @media (max-width: 680px) {
@@ -415,53 +479,41 @@
                 border-radius: 48px;
                 padding: 16px 20px;
             }
-            .logo {
-                font-size: 1.4rem;
-            }
-            .container {
-                padding: 16px;
-            }
-            .preview-item {
-                width: 70px;
-                height: 70px;
-            }
-            .image-grid {
-                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-                gap: 16px;
-            }
+            .logo { font-size: 1.4rem; }
+            .container { padding: 16px; }
+            .preview-item { width: 70px; height: 70px; }
+            .image-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
         }
     </style>
 </head>
 <body>
 
 <div class="bg-container">
-    <div class="bg-layer active" id="bgCurrent"></div>
-    <div class="bg-layer next" id="bgNext"></div>
+    <div class="bg-layer active" id="bgCurrent" style="background: linear-gradient(135deg, #1a0e2e, #0f0c1f);"></div>
+    <div class="bg-layer next" id="bgNext" style="background: linear-gradient(135deg, #2a1a3e, #1a1535);"></div>
 </div>
 
 <div class="container">
-    <!-- 导航栏 -->
     <div class="glass-nav">
         <div class="logo">🎭 流欺图床 · 浮光掠影</div>
         <div class="user-area">
-            <span id="usernameDisplay" style="color:#ffe0f0;">🌸 加载中</span>
+            <span id="usernameDisplay" style="color:#ffe0f0;">加载中...</span>
             <a href="logout.php" class="glass-btn">🚪 退 出</a>
             <a href="admin.php" id="adminLink" class="glass-btn" style="display:none;">⚙ 管 理</a>
+            <a href="config_manager.php" id="configLink" class="glass-btn" style="display:none;">⚙️ 配 置</a>
         </div>
     </div>
 
-    <!-- 上传区域 -->
     <div class="upload-section">
         <div class="drop-zone" id="dropZone">
             <div class="drop-icon">📸✨</div>
-            <div class="drop-text">拖拽图片至此区域</div>
+            <div class="drop-text">点击或拖拽图片至此区域上传</div>
             <div class="drop-hint">支持 JPG、PNG、GIF、WebP | 最多 8 张 | 单张 ≤8MB</div>
             <input type="file" id="fileInput" multiple accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
             <div class="preview-grid" id="previewGrid"></div>
             <div class="btn-wrapper" id="btnWrapper" style="display: none;">
                 <button class="upload-action-btn" id="submitUpload">✨ 开始上传 ✨</button>
             </div>
-            <!-- 进度条 -->
             <div class="progress-wrapper" id="progressWrapper">
                 <div class="progress-bar-container">
                     <div class="progress-bar" id="progressBar"></div>
@@ -471,201 +523,175 @@
         </div>
     </div>
 
-    <!-- 图片展示墙 -->
-    <h3 style="color:#ffdfe8; margin: 20px 0 10px; letter-spacing: 1px;">✦ 流光画廊 ✦</h3>
+    <h3 style="color:#ffdfe8; margin: 20px 0 10px;">✦ 流光画廊 ✦</h3>
     <div class="image-grid" id="imageGrid">
         <div style="text-align:center; padding:40px; color:#ccb5e8;">加载幻境中...</div>
     </div>
 </div>
 
+<div id="linkModal" class="modal">
+    <div class="modal-content">
+        <h3>🔗 获取图片链接</h3>
+        <div class="link-type-tabs">
+            <button class="link-tab active" data-type="url">🌐 直链 URL</button>
+            <button class="link-tab" data-type="markdown">📝 Markdown</button>
+            <button class="link-tab" data-type="bbcode">🎨 BBCode</button>
+            <button class="link-tab" data-type="html">📄 HTML</button>
+        </div>
+        <div class="link-display" id="linkDisplay"></div>
+        <button class="copy-btn" id="copyLinkBtn">📋 复制链接</button>
+        <button class="close-modal" id="closeModalBtn">关闭</button>
+    </div>
+</div>
+
 <script>
-    // ==================== 背景联动平移替换动画 ====================
-    const bgAPI = 'https://api.lqay.cn/api/zxsjt/?cat=heng';
-    let isAnimating = false;
-    let currentDirectionIndex = 0;
-    
-    const directions = [
-        { name: '上', outTransform: 'translateY(-100%)', inStart: 'translateY(100%)', inEnd: 'translateY(0%)' },
-        { name: '下', outTransform: 'translateY(100%)', inStart: 'translateY(-100%)', inEnd: 'translateY(0%)' },
-        { name: '左', outTransform: 'translateX(-100%)', inStart: 'translateX(100%)', inEnd: 'translateX(0%)' },
-        { name: '右', outTransform: 'translateX(100%)', inStart: 'translateX(-100%)', inEnd: 'translateX(0%)' }
-    ];
-    
-    function preloadImage(url) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve(url);
-            img.onerror = () => reject(url);
-            img.src = url;
-        });
-    }
-    
-    function getNewBgUrl() {
-        return `${bgAPI}&_=${Date.now()}`;
-    }
-    
-    async function initBackground() {
-        const url1 = getNewBgUrl();
-        const url2 = getNewBgUrl();
-        try {
-            await Promise.all([preloadImage(url1), preloadImage(url2)]);
-            const currentLayer = document.getElementById('bgCurrent');
-            const nextLayer = document.getElementById('bgNext');
-            currentLayer.style.backgroundImage = `url('${url1}')`;
-            nextLayer.style.backgroundImage = `url('${url2}')`;
-            currentLayer.style.transform = 'translate(0, 0)';
-            nextLayer.style.transform = 'translate(0, 0)';
-        } catch(e) {
-            console.warn('背景预加载失败');
-            document.getElementById('bgCurrent').style.background = '#1a0e2e';
-        }
-    }
-    
-    async function switchBackground() {
-        if (isAnimating) return;
-        isAnimating = true;
-        
-        const currentLayer = document.getElementById('bgCurrent');
-        const nextLayer = document.getElementById('bgNext');
-        const dir = directions[currentDirectionIndex % directions.length];
-        currentDirectionIndex++;
-        
-        const newUrl = getNewBgUrl();
-        try {
-            await preloadImage(newUrl);
-            
-            nextLayer.style.transition = 'none';
-            nextLayer.style.transform = dir.inStart;
-            nextLayer.style.backgroundImage = `url('${newUrl}')`;
-            
-            nextLayer.offsetHeight;
-            
-            nextLayer.style.transition = 'transform 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
-            currentLayer.style.transition = 'transform 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
-            
-            currentLayer.style.transform = dir.outTransform;
-            nextLayer.style.transform = dir.inEnd;
-            
-            setTimeout(() => {
-                currentLayer.style.transition = '';
-                currentLayer.style.transform = '';
-                const nextBg = nextLayer.style.backgroundImage;
-                currentLayer.style.backgroundImage = nextBg;
-                nextLayer.style.transition = '';
-                nextLayer.style.transform = '';
-                isAnimating = false;
-            }, 1250);
-        } catch(e) {
-            console.warn('背景切换失败');
-            isAnimating = false;
-        }
-    }
-    
-    initBackground();
-    setInterval(() => {
-        if (!isAnimating) switchBackground();
-    }, 5000);
-    
-    // ==================== 用户状态与图片管理 ====================
+    // ==================== 全局变量 ====================
     let selectedFiles = [];
-    const MAX_FILES = 8;
+    let previewUrls = [];
     let currentUser = null;
     let isAdmin = false;
-    let previewUrls = [];
-    
-    async function fetchUser() {
-        const res = await fetch('get_user.php');
-        const data = await res.json();
-        if (!data.username) {
-            window.location.href = 'login.html';
-            return;
-        }
-        currentUser = data.username;
-        isAdmin = data.is_admin;
-        document.getElementById('usernameDisplay').innerHTML = `🌸 ${escapeHtml(currentUser)}`;
-        if (isAdmin) {
-            document.getElementById('adminLink').style.display = 'inline-block';
-        }
-    }
-    
-    async function loadImages() {
-        const res = await fetch('get_images.php');
-        const images = await res.json();
-        const grid = document.getElementById('imageGrid');
-        if (!images.length) {
-            grid.innerHTML = '<div style="text-align:center; padding:60px; color:#ccb5e8;">✨ 画廊空空如也，拖拽图片上传吧 ✨</div>';
-            return;
-        }
-        grid.innerHTML = images.map(img => `
-            <div class="img-card">
-                <img src="uploads/${encodeURIComponent(img.filename)}" loading="lazy" alt="${escapeHtml(img.name)}">
-                <div class="img-info">
-                    <div class="img-name">📷 ${escapeHtml(img.name)}</div>
-                    <div class="img-meta">
-                        <span>👤 ${escapeHtml(img.uploader)}</span>
-                        <span>📅 ${img.time}</span>
-                    </div>
-                    ${isAdmin || img.uploader === currentUser ? 
-                        `<button class="del-btn" data-id="${escapeHtml(img.id)}">🗑️ 删除</button>` : ''}
-                </div>
-            </div>
-        `).join('');
-        
-        document.querySelectorAll('.del-btn').forEach(btn => {
-            btn.onclick = () => deleteImage(btn.dataset.id);
-        });
-    }
-    
-    async function deleteImage(id) {
-        if (!confirm('确定要删除这张图片吗？')) return;
-        const res = await fetch(`admin.php?del_id=${encodeURIComponent(id)}`);
-        if (res.ok) {
-            showToast('✨ 删除成功');
-            loadImages();
-        } else {
-            showToast('❌ 删除失败');
-        }
-    }
-    
-    function showToast(msg) {
+    let currentLinkData = null;
+    let currentLinkType = 'url';
+
+    // ==================== DOM 元素 ====================
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const submitBtn = document.getElementById('submitUpload');
+    const previewGrid = document.getElementById('previewGrid');
+    const btnWrapper = document.getElementById('btnWrapper');
+    const imageGrid = document.getElementById('imageGrid');
+    const usernameDisplay = document.getElementById('usernameDisplay');
+    const adminLink = document.getElementById('adminLink');
+    const configLink = document.getElementById('configLink');
+    const progressWrapper = document.getElementById('progressWrapper');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+
+    // ==================== 辅助函数 ====================
+    function showToast(msg, isError = false) {
         let toast = document.querySelector('.msg-toast');
         if (toast) toast.remove();
         toast = document.createElement('div');
         toast.className = 'msg-toast';
         toast.textContent = msg;
+        if (isError) toast.style.background = 'rgba(220, 70, 90, 0.9)';
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 2500);
     }
-    
-    // 进度条控制函数
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
     function showProgress(show, percent = 0, text = '') {
-        const wrapper = document.getElementById('progressWrapper');
-        const bar = document.getElementById('progressBar');
-        const textEl = document.getElementById('progressText');
-        
         if (show) {
-            wrapper.style.display = 'block';
-            bar.style.width = percent + '%';
-            if (text) textEl.textContent = text;
+            progressWrapper.style.display = 'block';
+            progressBar.style.width = percent + '%';
+            if (text) progressText.textContent = text;
         } else {
-            wrapper.style.display = 'none';
-            bar.style.width = '0%';
-            textEl.textContent = '准备就绪';
+            progressWrapper.style.display = 'none';
+            progressBar.style.width = '0%';
+            progressText.textContent = '准备就绪';
         }
     }
-    
+
     function updateProgress(percent, text) {
-        const bar = document.getElementById('progressBar');
-        const textEl = document.getElementById('progressText');
-        bar.style.width = percent + '%';
-        if (text) textEl.textContent = text;
+        progressBar.style.width = percent + '%';
+        if (text) progressText.textContent = text;
     }
-    
+
+    // ==================== 用户认证 ====================
+    async function fetchUser() {
+        try {
+            const res = await fetch('get_user.php');
+            const data = await res.json();
+            if (!data.username) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            currentUser = data.username;
+            isAdmin = data.is_admin;
+            usernameDisplay.innerHTML = `🌸 ${escapeHtml(currentUser)}`;
+            if (isAdmin) {
+                adminLink.style.display = 'inline-block';
+                configLink.style.display = 'inline-block';
+            }
+            return true;
+        } catch (err) {
+            console.error('fetchUser error:', err);
+            showToast('获取用户信息失败', true);
+            return false;
+        }
+    }
+
+    // ==================== 加载图片列表 ====================
+    async function loadImages() {
+        try {
+            imageGrid.innerHTML = '<div style="text-align:center; padding:40px; color:#ccb5e8;">加载幻境中...</div>';
+            
+            const res = await fetch('get_images.php');
+            if (!res.ok) {
+                throw new Error('HTTP ' + res.status);
+            }
+            
+            const images = await res.json();
+            console.log('加载到的图片:', images);
+            
+            if (!images || images.length === 0) {
+                imageGrid.innerHTML = '<div style="text-align:center; padding:60px; color:#ccb5e8;">✨ 画廊空空如也，拖拽图片上传吧 ✨</div>';
+                return;
+            }
+            
+            imageGrid.innerHTML = images.map(img => `
+                <div class="img-card">
+                    <img src="${escapeHtml(img.proxy_url)}" loading="lazy" alt="${escapeHtml(img.name)}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 200 200%22%3E%3Crect width=%22200%22 height=%22200%22 fill=%22%232a1e3e%22/%3E%3Ctext x=%22100%22 y=%22100%22 text-anchor=%22middle%22 fill=%22%23ff9eb5%22 font-size=%2214%22%3E图片加载失败%3C/text%3E%3C/svg%3E'">
+                    <div class="img-info">
+                        <div class="img-name">📷 ${escapeHtml(img.name)}</div>
+                        <div class="img-meta">
+                            <span>👤 ${escapeHtml(img.uploader)}</span>
+                            <span>📅 ${img.time || ''}</span>
+                        </div>
+                        <div class="link-buttons">
+                            <button class="link-btn" onclick="showLinkModal('${img.id}', 'url')">🔗 直链</button>
+                            <button class="link-btn" onclick="showLinkModal('${img.id}', 'markdown')">📝 Markdown</button>
+                            <button class="link-btn" onclick="showLinkModal('${img.id}', 'bbcode')">🎨 BBCode</button>
+                        </div>
+                        ${isAdmin || img.uploader === currentUser ? 
+                            `<button class="del-btn" onclick="deleteImage('${img.id}')">🗑️ 删除</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        } catch (err) {
+            console.error('loadImages error:', err);
+            imageGrid.innerHTML = '<div style="text-align:center; padding:40px; color:#ff9eb5;">❌ 加载图片失败，请刷新页面重试</div>';
+        }
+    }
+
+    // ==================== 删除图片 ====================
+    window.deleteImage = async function(id) {
+        if (!confirm('确定要删除这张图片吗？')) return;
+        try {
+            const res = await fetch(`admin.php?del_id=${encodeURIComponent(id)}`);
+            if (res.ok) {
+                showToast('✨ 删除成功');
+                loadImages();
+            } else {
+                showToast('❌ 删除失败', true);
+            }
+        } catch (err) {
+            showToast('❌ 删除失败', true);
+        }
+    }
+
+    // ==================== 预览图管理 ====================
     function updatePreview() {
-        const container = document.getElementById('previewGrid');
-        const btnWrapper = document.getElementById('btnWrapper');
-        
-        container.innerHTML = '';
+        previewGrid.innerHTML = '';
         
         if (selectedFiles.length === 0) {
             btnWrapper.style.display = 'none';
@@ -684,30 +710,28 @@
                 <img src="${url}">
                 <div class="remove-preview" data-idx="${idx}">✕</div>
             `;
-            container.appendChild(div);
+            previewGrid.appendChild(div);
         });
         
         btnWrapper.style.display = 'block';
         
         document.querySelectorAll('.remove-preview').forEach(btn => {
-            btn.removeEventListener('click', handleRemove);
-            btn.addEventListener('click', handleRemove);
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const idx = parseInt(btn.dataset.idx);
+                if (!isNaN(idx) && idx >= 0 && idx < selectedFiles.length) {
+                    selectedFiles.splice(idx, 1);
+                    updatePreview();
+                }
+            };
         });
     }
-    
-    function handleRemove(e) {
-        e.stopPropagation();
-        const idx = parseInt(this.dataset.idx);
-        if (!isNaN(idx) && idx >= 0 && idx < selectedFiles.length) {
-            selectedFiles.splice(idx, 1);
-            updatePreview();
-        }
-    }
-    
+
     function addFiles(files) {
+        const MAX_FILES = 8;
         let newFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
         if (selectedFiles.length + newFiles.length > MAX_FILES) {
-            showToast(`最多上传 ${MAX_FILES} 张，当前已有 ${selectedFiles.length} 张`);
+            showToast(`最多上传 ${MAX_FILES} 张，当前已有 ${selectedFiles.length} 张`, true);
             newFiles = newFiles.slice(0, MAX_FILES - selectedFiles.length);
         }
         if (newFiles.length > 0) {
@@ -715,11 +739,11 @@
             updatePreview();
         }
     }
-    
-    // 带进度条的上传函数
+
+    // ==================== 上传图片 ====================
     async function uploadImages() {
         if (selectedFiles.length === 0) {
-            showToast('请先选择图片');
+            showToast('请先选择图片', true);
             return;
         }
         
@@ -728,86 +752,100 @@
             formData.append('images[]', file);
         }
         
-        const btn = document.getElementById('submitUpload');
-        const originalText = btn.textContent;
-        btn.textContent = '⏳ 上传中...';
-        btn.disabled = true;
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = '⏳ 上传中...';
+        submitBtn.disabled = true;
         
-        // 显示进度条
         showProgress(true, 0, '正在准备上传...');
         
-        // 使用 XMLHttpRequest 来实现进度追踪
-        const xhr = new XMLHttpRequest();
-        
-        // 监听上传进度
-        xhr.upload.addEventListener('progress', (e) => {
-            if (e.lengthComputable) {
-                const percentComplete = Math.round((e.loaded / e.total) * 100);
-                updateProgress(percentComplete, `上传中 ${percentComplete}%`);
-            }
-        });
-        
-        // 监听完成
-        xhr.addEventListener('load', () => {
-            if (xhr.status === 200) {
-                try {
-                    const result = JSON.parse(xhr.responseText);
-                    if (result.success > 0) {
-                        showToast(`✅ 成功上传 ${result.success} 张图片`);
-                        // 清空选中的文件
-                        selectedFiles = [];
-                        previewUrls.forEach(url => URL.revokeObjectURL(url));
-                        previewUrls = [];
-                        updatePreview();
-                        loadImages();
-                        updateProgress(100, '上传完成！');
-                        setTimeout(() => {
-                            showProgress(false);
-                        }, 1500);
+        try {
+            const xhr = new XMLHttpRequest();
+            
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    updateProgress(percent, `上传中 ${percent}%`);
+                }
+            });
+            
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    try {
+                        const result = JSON.parse(xhr.responseText);
+                        if (result.success > 0) {
+                            showToast(`✅ 成功上传 ${result.success} 张图片`);
+                            selectedFiles = [];
+                            previewUrls.forEach(url => URL.revokeObjectURL(url));
+                            previewUrls = [];
+                            updatePreview();
+                            loadImages();
+                            updateProgress(100, '上传完成！');
+                            setTimeout(() => showProgress(false), 1500);
+                        }
+                        if (result.errors && result.errors.length) {
+                            showToast(`⚠️ ${result.errors.join(', ')}`, true);
+                        }
+                    } catch (err) {
+                        showToast('❌ 上传失败，服务器响应异常', true);
+                        showProgress(false);
                     }
-                    if (result.errors && result.errors.length) {
-                        showToast(`⚠️ ${result.errors.join(', ')}`);
-                    }
-                } catch (err) {
-                    showToast('❌ 上传失败，服务器响应异常');
+                } else {
+                    showToast('❌ 上传失败，请重试', true);
                     showProgress(false);
                 }
-            } else {
-                showToast('❌ 上传失败，请重试');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            };
+            
+            xhr.onerror = () => {
+                showToast('❌ 网络错误，请重试', true);
                 showProgress(false);
-            }
-            btn.textContent = originalText;
-            btn.disabled = false;
-        });
-        
-        // 监听错误
-        xhr.addEventListener('error', () => {
-            showToast('❌ 网络错误，请重试');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            };
+            
+            xhr.open('POST', 'upload.php');
+            xhr.send(formData);
+        } catch (err) {
+            showToast('❌ 上传失败', true);
             showProgress(false);
-            btn.textContent = originalText;
-            btn.disabled = false;
-        });
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
+    }
+
+    // ==================== 链接弹窗 ====================
+    window.showLinkModal = async function(imageId, type = 'url') {
+        currentLinkType = type;
         
-        // 发送请求
-        xhr.open('POST', 'upload.php');
-        xhr.send(formData);
+        try {
+            const res = await fetch(`get_link.php?id=${imageId}&format=json`);
+            const data = await res.json();
+            currentLinkData = data;
+            updateLinkDisplay();
+            document.getElementById('linkModal').style.display = 'flex';
+        } catch (err) {
+            showToast('获取链接失败', true);
+        }
     }
     
-    function escapeHtml(str) {
-        if (!str) return '';
-        return String(str).replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
+    function updateLinkDisplay() {
+        if (!currentLinkData) return;
+        let displayText = '';
+        switch (currentLinkType) {
+            case 'url': displayText = currentLinkData.url; break;
+            case 'markdown': displayText = currentLinkData.markdown; break;
+            case 'bbcode': displayText = currentLinkData.bbcode; break;
+            case 'html': displayText = currentLinkData.html; break;
+        }
+        document.getElementById('linkDisplay').textContent = displayText;
+        
+        document.querySelectorAll('.link-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.type === currentLinkType);
         });
     }
     
     // ==================== 事件绑定 ====================
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-    const submitBtn = document.getElementById('submitUpload');
-    
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropZone.classList.add('drag-over');
@@ -824,12 +862,8 @@
     });
     
     dropZone.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-preview')) {
-            return;
-        }
-        if (e.target.id === 'submitUpload' || e.target.closest('#submitUpload')) {
-            return;
-        }
+        if (e.target.classList.contains('remove-preview')) return;
+        if (e.target.id === 'submitUpload') return;
         fileInput.click();
     });
     
@@ -843,9 +877,62 @@
         fileInput.value = '';
     });
     
-    fetchUser().then(() => {
-        loadImages();
+    // 弹窗事件
+    document.getElementById('copyLinkBtn').addEventListener('click', async () => {
+        const linkText = document.getElementById('linkDisplay').textContent;
+        try {
+            await navigator.clipboard.writeText(linkText);
+            showToast('✅ 链接已复制到剪贴板！');
+        } catch (err) {
+            const textarea = document.createElement('textarea');
+            textarea.value = linkText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('✅ 链接已复制到剪贴板！');
+        }
     });
+    
+    document.getElementById('closeModalBtn').addEventListener('click', () => {
+        document.getElementById('linkModal').style.display = 'none';
+    });
+    
+    document.getElementById('linkModal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('linkModal')) {
+            document.getElementById('linkModal').style.display = 'none';
+        }
+    });
+    
+    document.querySelectorAll('.link-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            currentLinkType = tab.dataset.type;
+            updateLinkDisplay();
+        });
+    });
+    
+    // 背景切换（简化版）
+    let bgIndex = 0;
+    const bgLayers = ['#1a0e2e', '#2a1a3e', '#0f0c1f', '#1a1535'];
+    setInterval(() => {
+        bgIndex = (bgIndex + 1) % bgLayers.length;
+        const nextLayer = document.getElementById('bgNext');
+        const currentLayer = document.getElementById('bgCurrent');
+        nextLayer.style.background = `linear-gradient(135deg, ${bgLayers[bgIndex]}, ${bgLayers[(bgIndex+1)%bgLayers.length]})`;
+        nextLayer.style.transform = 'translateY(100%)';
+        setTimeout(() => {
+            currentLayer.style.background = nextLayer.style.background;
+            nextLayer.style.transform = 'translateY(0)';
+        }, 100);
+    }, 8000);
+    
+    // ==================== 初始化 ====================
+    (async function init() {
+        const loggedIn = await fetchUser();
+        if (loggedIn) {
+            await loadImages();
+        }
+    })();
 </script>
 </body>
 </html>

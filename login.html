@@ -201,6 +201,12 @@
             background: linear-gradient(120deg, #ff889f, #a86aff);
         }
 
+        button[type="submit"]:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
+
         .error-msg {
             color: #ffb8c5;
             background: rgba(180,30,60,0.4);
@@ -263,6 +269,22 @@
                 width: 100%;
             }
         }
+
+        /* 加载动画 */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #1e1a2f;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -298,7 +320,7 @@
             <div class="hint-text">💡 点击图片或刷新按钮可更换验证码</div>
         </div>
         
-        <button type="submit">✦ 踏入幻境 ✦</button>
+        <button type="submit" id="loginBtn">✦ 踏入幻境 ✦</button>
         <div id="msg" class="error-msg" style="display: none;"></div>
     </form>
 </div>
@@ -316,42 +338,79 @@
         document.getElementById('particles').appendChild(p);
     }
 
+    // DOM 元素
+    const captchaImg = document.getElementById('captchaImg');
+    const refreshBtn = document.getElementById('refreshCaptcha');
+    const loginForm = document.getElementById('loginForm');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const captchaInput = document.getElementById('captcha');
+    const loginBtn = document.getElementById('loginBtn');
+    const msgDiv = document.getElementById('msg');
+
     // 刷新验证码
     function refreshCaptcha() {
-        const captchaImg = document.getElementById('captchaImg');
+        // 添加时间戳防止缓存，并添加随机参数确保刷新
         captchaImg.src = 'captcha.php?t=' + Date.now() + '&r=' + Math.random();
     }
     
-    document.getElementById('captchaImg').addEventListener('click', refreshCaptcha);
-    document.getElementById('refreshCaptcha').addEventListener('click', refreshCaptcha);
+    captchaImg.addEventListener('click', refreshCaptcha);
+    refreshBtn.addEventListener('click', refreshCaptcha);
 
-    const form = document.getElementById('loginForm');
-    const captchaInput = document.getElementById('captcha');
-    
-    form.onsubmit = async (e) => {
+    // 显示消息
+    function showMsg(message, isError = true) {
+        msgDiv.textContent = message;
+        msgDiv.style.display = 'block';
+        if (isError) {
+            msgDiv.style.color = '#ffb8c5';
+            msgDiv.style.background = 'rgba(180,30,60,0.4)';
+        } else {
+            msgDiv.style.color = '#ccffdd';
+            msgDiv.style.background = 'rgba(80,200,120,0.25)';
+        }
+        setTimeout(() => {
+            msgDiv.style.display = 'none';
+        }, 3000);
+    }
+
+    // 设置按钮加载状态
+    function setLoading(isLoading) {
+        if (isLoading) {
+            loginBtn.innerHTML = '<span class="loading-spinner"></span> 验证中...';
+            loginBtn.disabled = true;
+        } else {
+            loginBtn.innerHTML = '✦ 踏入幻境 ✦';
+            loginBtn.disabled = false;
+        }
+    }
+
+    // 表单提交
+    loginForm.onsubmit = async (e) => {
         e.preventDefault();
         
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
         const captcha = captchaInput.value.trim();
         
+        // 前端验证
         if (!username) {
             showMsg('请输入用户名');
+            usernameInput.focus();
             return;
         }
         if (!password) {
             showMsg('请输入密码');
+            passwordInput.focus();
             return;
         }
         if (!captcha) {
             showMsg('请输入验证码');
+            captchaInput.focus();
             return;
         }
         
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = '⏳ 验证中...';
-        submitBtn.disabled = true;
+        // 显示加载状态
+        setLoading(true);
         
         try {
             const res = await fetch('upload.php?action=login', {
@@ -359,36 +418,44 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username, password, captcha})
             });
+            
             const result = await res.json();
             
             if (result.success) {
-                window.location.href = 'index.html';
+                showMsg('✅ 登录成功，正在跳转...', false);
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 500);
             } else {
-                showMsg(result.message || '登录失败');
+                showMsg(result.message || '登录失败，请重试');
+                // 刷新验证码
                 refreshCaptcha();
                 captchaInput.value = '';
                 captchaInput.focus();
+                setLoading(false);
             }
         } catch (err) {
-            showMsg('网络错误，请重试');
-        } finally {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
+            console.error('登录错误:', err);
+            showMsg('网络错误，请检查网络连接后重试');
+            refreshCaptcha();
+            setLoading(false);
         }
     };
     
-    function showMsg(msg) {
-        const msgDiv = document.getElementById('msg');
-        msgDiv.textContent = msg;
-        msgDiv.style.display = 'block';
-        setTimeout(() => {
-            msgDiv.style.display = 'none';
-        }, 3000);
-    }
-    
-    document.querySelectorAll('input').forEach(input => {
+    // 输入框获得焦点时清除错误提示
+    [usernameInput, passwordInput, captchaInput].forEach(input => {
         input.addEventListener('focus', () => {
-            document.getElementById('msg').style.display = 'none';
+            msgDiv.style.display = 'none';
+        });
+    });
+    
+    // 回车键提交
+    [usernameInput, passwordInput, captchaInput].forEach(input => {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                loginForm.dispatchEvent(new Event('submit'));
+            }
         });
     });
 </script>
